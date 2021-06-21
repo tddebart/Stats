@@ -5,6 +5,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution files", "Solution files", "{E4173D60-B07B-4EA9-992D-87A933FC6545}"
 ProjectSection(SolutionItems) = preProject
 	Stats\publish.ps1 = Stats\publish.ps1
+	README.md = README.md
 EndProjectSection
 EndProject
 Global

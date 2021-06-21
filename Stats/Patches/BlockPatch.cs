@@ -31,7 +31,7 @@ namespace Stats.Patches
                 if (player.data.view.IsMine && !player.GetComponent<PlayerAPI>().enabled)
                 {
                     UnityEngine.Debug.LogWarning("block2");
-                    Stats.UpdateValue(Stats.Value.Blocks);
+                    Stats.AddValueOld(Stats.Value.Blocks);
                 }
             }
         }
