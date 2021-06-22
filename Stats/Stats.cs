@@ -24,14 +24,12 @@ namespace Stats
         private const string ModId = "BossSloth.rounds.Stats";
         private const string ModName = "Stats";
         public const string Version = "0.1.0";
-        
-        public enum Value
-        {
-            Shoots,
-            Blocks,
-        }
 
         public static Stats Instance;
+
+        private static GameObject MenuBase;
+        private static GameObject StatBase;
+        private static GameObject ButtonBase;
 
         public readonly ConfigFile customConfig = new ConfigFile(Path.Combine(Paths.ConfigPath, "Stats.cfg"), true);
 
@@ -40,24 +38,26 @@ namespace Stats
         private bool firstTime = true;
 
         internal static readonly List<CardItem> CardObjects = new List<CardItem>();
+        internal static readonly List<StatValue> StatObjects = new List<StatValue>();
 
-        private static ConfigEntry<int> shoots;
-        private static ConfigEntry<int> blocks;
+        internal static Player localPlayer;
 
         public Stats()
         {
-            shoots = customConfig.Bind("Gun", "shoots", 0, "How many bullets you have shot");
-            blocks = customConfig.Bind("Block", "blocks", 0, "How many times you blocked");
-            
             var uiStats = AssetUtils.LoadAssetBundleFromResources("statui", typeof(Stats).Assembly);
             if (uiStats == null)
             {
                 UnityEngine.Debug.LogError("Couldn't find UIStats?");
             }
             var statsText = uiStats.LoadAsset<GameObject>("Stats_Text");
+            var baseObjects = uiStats.LoadAsset<GameObject>("BaseObjects");
+            MenuBase = uiStats.LoadAsset<GameObject>("EmptyMenuBase");
             var stats = uiStats.LoadAsset<GameObject>("Stats");
             var cards = uiStats.LoadAsset<GameObject>("Cards");
-
+            
+            StatBase = baseObjects.transform.Find("Group/Grid/StatBaseObject").gameObject;
+            ButtonBase = baseObjects.transform.Find("Group/Grid/ButtonBaseObject").gameObject;
+            
             GameObject _statsText;
             GameObject _stats;
             GameObject _cards;
@@ -68,33 +68,85 @@ namespace Stats
                 this.ExecuteAfterSeconds(firstTime ? 1f : 0f, () =>
                 {
                     // Create main menu text
-                    _statsText = Instantiate(statsText, MainMenuHandler.instance.transform.Find("Canvas/ListSelector/Main/Group"));
+                    _statsText = Instantiate(statsText,
+                        MainMenuHandler.instance.transform.Find("Canvas/ListSelector/Main/Group"));
                     _statsText.transform.SetSiblingIndex(4);
-                    
+
                     // Create stats menu
                     _stats = Instantiate(stats, MainMenuHandler.instance.transform.Find("Canvas/ListSelector"));
-                    
+
                     // Create cards menu
                     _cards = Instantiate(cards, MainMenuHandler.instance.transform.Find("Canvas/ListSelector"));
                     CreateCardMenu(_cards);
 
                     // Create button for main menu text
-                    _statsText.GetComponent<Button>().onClick.AddListener(() => ClickStats(_stats));
-                    
+                    _statsText.GetComponent<Button>().onClick.AddListener(() => ClickMenuButton(_stats));
+
                     // Create click action for cards button
-                    _stats.transform.Find("Group/Grid/Cards").GetComponent<Button>().onClick.AddListener(() => ClickCards(_cards));
-                    
+                    _stats.transform.Find("Group/Grid/Cards").GetComponent<Button>().onClick
+                        .AddListener(() => ClickCards(_cards));
+
                     // Create back esc key
-                    _stats.transform.Find("Group").GetComponent<GoBack>().target = MainMenuHandler.instance.transform.Find("Canvas/ListSelector/Main").GetComponent<ListMenuPage>();
+                    _stats.transform.Find("Group").GetComponent<GoBack>().target = MainMenuHandler.instance.transform
+                        .Find("Canvas/ListSelector/Main").GetComponent<ListMenuPage>();
+
                     _cards.transform.Find("Group").GetComponent<GoBack>().target = _stats.GetComponent<ListMenuPage>();
-                    
-                    
+
+
                     // Creat back button
-                    _stats.transform.Find("Group/Back").GetComponent<Button>().onClick.AddListener(ClickBack(MainMenuHandler.instance.transform.Find("Canvas/ListSelector/Main")));
-                    _cards.transform.Find("Group/Back").GetComponent<Button>().onClick.AddListener(ClickBack(_stats.transform));
+                    _stats.transform.Find("Group/Back").GetComponent<Button>().onClick.AddListener(
+                        ClickBack(MainMenuHandler.instance.transform.Find("Canvas/ListSelector/Main")
+                            .GetComponent<ListMenuPage>()));
+
+                    _cards.transform.Find("Group/Back").GetComponent<Button>().onClick
+                        .AddListener(ClickBack(_stats.transform.GetComponent<ListMenuPage>()));
+
                     
-                    CreateStat("Testing", "testing", "", _stats);
-                    CreateStat("testing", "testing", "", _stats);
+                    var GunMenu = CreateMenu("Gun and Player", 50, _stats);
+                    var bulletsShot = CreateStat("Bullets shot", "Gun", "How many bullets you have shot", GunMenu);
+                    var totalDamage = CreateStat("Total damage", "Gun", "How much damage you have done total", GunMenu);
+                    CreateStat("Average damage per shot", "Gun", "How much damage you have done average per bullet",
+                        GunMenu, 2,
+                        () =>
+                        {
+                            StatValue AVDPS = null;
+                            foreach (var stat in StatObjects)
+                            {
+                                if (stat._statName == "Average damage per shot")
+                                {
+                                    AVDPS = stat;
+                                }
+                            }
+
+                            if (totalDamage.GetComponent<StatValue>().amount.Value == 0 ||
+                                bulletsShot.GetComponent<StatValue>().amount.Value == 0 || AVDPS == null) return;
+                            AVDPS.amount.Value = totalDamage.GetComponent<StatValue>().amount.Value /
+                                                 bulletsShot.GetComponent<StatValue>().amount.Value;
+                        });
+                    var recievedDamage = CreateStat("Total damage received", "Player", "How much damage you have received", GunMenu);
+
+                    CreateStat("Blocks", "Block", "How many times you blocked", GunMenu).transform.SetSiblingIndex(3);
+                    var gamesPlayed = CreateStat("Games played", "Games", "How many games you have played", GunMenu);
+                    CreateStat("Average damage per game", "Games", "How many games you have played", GunMenu,2 , () =>
+                    {
+                        StatValue AVDPG = null;
+                        foreach (var stat in StatObjects)
+                        {
+                            if (stat._statName == "Average damage per game")
+                            {
+                                AVDPG = stat;
+                            }
+                        }
+                        
+                        if (totalDamage.GetComponent<StatValue>().amount.Value == 0 ||
+                            gamesPlayed.GetComponent<StatValue>().amount.Value == 0 || AVDPG == null) return;
+                        AVDPG.amount.Value = totalDamage.GetComponent<StatValue>().amount.Value /
+                                             gamesPlayed.GetComponent<StatValue>().amount.Value;
+                    });
+
+
+                    //var testMenu = CreateMenu("TestMenu", 100, _stats);
+                    //CreateStat("testMenuStat", "testing", "", testMenu, () => {UnityEngine.Debug.Log("Updated testMenuStat");});
                 });
                 
                 firstTime = false;
@@ -104,15 +156,6 @@ namespace Stats
 
         }
 
-        private static void UpdateValuesMain(GameObject _stats)
-        {
-            var shootsText = _stats.transform.Find("Group/Grid/Shoots/Procedural Image/Shoots_Text");
-            shootsText.GetComponent<TextMeshProUGUI>().text = shoots.Value.ToString("N0", cultureInfo);
-            
-            var blockText = _stats.transform.Find("Group/Grid/Blocks/Procedural Image/Blocks_Text");
-            blockText.GetComponent<TextMeshProUGUI>().text = blocks.Value.ToString("N0", cultureInfo);
-        }
-
         private static void UpdateValues(GameObject obj)
         {
             foreach (var stat in obj.GetComponentsInChildren<StatValue>(true))
@@ -120,19 +163,8 @@ namespace Stats
                 stat.UpdateValue();
             }
         }
-        
-        internal static void AddValueOld(Value value)
-        {
-            if (value == Value.Shoots)
-            {
-                shoots.Value++;
-            } else if (value == Value.Blocks)
-            {
-                blocks.Value++;
-            }
-        }
 
-        internal static void AddValue(string valueName)
+        internal static void AddValue(string valueName, int amount = 1)
         {
             var listSelector = MainMenuHandler.instance.transform.Find("Canvas/ListSelector");
             var values = listSelector.gameObject.GetComponentsInChildren<StatValue>(true);
@@ -141,7 +173,7 @@ namespace Stats
             {
                 if (string.Equals(valueName, value._statName, StringComparison.OrdinalIgnoreCase))
                 {
-                    value.amount.Value++;
+                    value.amount.Value += amount;
                 }
             }
         }
@@ -165,15 +197,39 @@ namespace Stats
         }
 
         // ReSharper disable once UnusedMethodReturnValue.Local
-        private static GameObject CreateStat(string Name, string Section, string Description, GameObject location)
+        private static GameObject CreateStat(string Name, string Section, string Description, GameObject parent,int RoundDecimals = 0 , Action updateAction = null)
         {
-            location = location.transform.Find("Group/Grid/").gameObject;
-            var statBase = Instantiate(MainMenuHandler.instance.transform.Find("Canvas/ListSelector/Stats(Clone)/Group/Grid/StatBaseObject").gameObject, location.transform);
-            GameObject obj = null;
+            parent = parent.transform.Find("Group/Grid/").gameObject;
+            var _statBase = Instantiate(StatBase, parent.transform);
             // ReSharper disable once Unity.IncorrectMonoBehaviourInstantiation
             // ReSharper disable once UnusedVariable
-            var statValue = new StatValue(statBase, Name, Section, Description, ref obj);
+            var statValue = new StatValue(_statBase, Name, Section, Description, RoundDecimals , out var obj);
+            StatObjects.Add(obj.GetComponent<StatValue>());
+            obj.GetComponent<StatValue>().AddUpdateAction(updateAction);
             return(obj);
+        }
+
+        private static GameObject CreateMenu(string Name, int size, GameObject parent)
+        {
+            var obj = Instantiate(MenuBase, MainMenuHandler.instance.transform.Find("Canvas/ListSelector"));
+            obj.name = Name;
+
+            // Assign back objects
+            var goBackObject = parent.GetComponent<ListMenuPage>();
+            obj.GetComponentInChildren<GoBack>(true).target = goBackObject;
+            obj.transform.Find("Group/Back").gameObject.GetComponent<Button>().onClick.AddListener(ClickBack(goBackObject));
+
+            // Create button to menu
+            var button = Instantiate(ButtonBase, parent.transform.Find("Group/Grid"));
+            button.GetComponent<ListMenuButton>().setBarHeight = size;
+            button.name = Name;
+            button.GetComponent<RectTransform>().sizeDelta = new Vector2(button.GetComponent<RectTransform>().sizeDelta.x, size+12);
+            var uGUI = button.GetComponentInChildren<TextMeshProUGUI>();
+            uGUI.text = Name;
+            uGUI.fontSize = size;
+            button.GetComponent<Button>().onClick.AddListener(() => ClickMenuButton(obj.GetComponent<ListMenuPage>().gameObject));
+
+            return obj;
         }
 
         private static void CreateCardMenu(GameObject cards)
@@ -220,16 +276,16 @@ namespace Stats
             }
             
         }
-        
-        private void ClickStats(GameObject stats)
+
+        private static void ClickMenuButton(GameObject listMenuPage)
         {
-            UpdateValuesMain(stats);
-            UpdateValues(stats);
-            stats.GetComponent<ListMenuPage>().Open();
+            UpdateValues(listMenuPage);
+            listMenuPage.GetComponent<ListMenuPage>().Open();
         }
-        
+
         private static void ClickCards(GameObject cards)
         {
+            UpdateValues(cards);
             foreach(var card in CardObjects)
             {
                 card.UpdateValue();
@@ -237,12 +293,9 @@ namespace Stats
             cards.GetComponent<ListMenuPage>().Open();
         }
 
-        private static UnityAction ClickBack(Component backObject)
+        private static UnityAction ClickBack(ListMenuPage backObject)
         {
-            return () =>
-            {
-                backObject.GetComponent<ListMenuPage>().Open();
-            };
+            return backObject.Open;
         }
     }
 }

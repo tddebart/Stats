@@ -26,10 +26,5 @@ namespace Stats
         {
             cardAmount.text = amount.Value.ToString("N0", Stats.cultureInfo);
         }
-
-        public void OnDestroy()
-        {
-            Stats.CardObjects.Remove(this);
-        }
     }
 }

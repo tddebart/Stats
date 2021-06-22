@@ -48,6 +48,9 @@
         <Reference Include="BepInEx, Version=5.4.11.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>C:\Users\tddeb\AppData\Roaming\r2modmanPlus-local\ROUNDS\profiles\Default\BepInEx\core\BepInEx.dll</HintPath>
         </Reference>
+        <Reference Include="InControl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\SteamLibrary\steamapps\common\ROUNDS\Rounds_Data\Managed\InControl.dll</HintPath>
+        </Reference>
         <Reference Include="MMHOOK_Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>C:\Users\tddeb\AppData\Roaming\r2modmanPlus-local\ROUNDS\profiles\Default\BepInEx\plugins\willis81808-MMHook\MMHOOK_Assembly-CSharp.dll</HintPath>
         </Reference>
@@ -108,7 +111,10 @@
         <Compile Include="CardItem.cs" />
         <Compile Include="Patches\BlockPatch.cs" />
         <Compile Include="Patches\ApplyCardStatsPatch.cs" />
+        <Compile Include="Patches\CharacterStatModifierPatch.cs" />
+        <Compile Include="Patches\GM_ArmsRacePatch.cs" />
         <Compile Include="Patches\GunPatch.cs" />
+        <Compile Include="Patches\PlayerPatch.cs" />
         <Compile Include="Stats.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="StatValue.cs" />

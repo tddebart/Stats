@@ -12,7 +12,9 @@ namespace Stats.Patches
             {
                 if (___playerToUpgrade.data.view.IsMine && !___playerToUpgrade.GetComponent<PlayerAPI>().enabled)
                 {
-                    UnityEngine.Debug.LogWarning("Apply stats");
+#if DEBUG
+                    UnityEngine.Debug.LogWarning("Got card: " + __instance.GetComponent<CardInfo>().cardName.ToLower());
+#endif
                     Stats.AddCardValue(__instance.GetComponent<CardInfo>());
                 }
             }

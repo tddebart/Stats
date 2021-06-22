@@ -30,8 +30,10 @@ namespace Stats.Patches
                 var player = __instance.gameObject.GetComponent<Player>();
                 if (player.data.view.IsMine && !player.GetComponent<PlayerAPI>().enabled)
                 {
-                    UnityEngine.Debug.LogWarning("block2");
-                    Stats.AddValueOld(Stats.Value.Blocks);
+#if DEBUG
+                    UnityEngine.Debug.LogWarning("Blocked");
+#endif
+                    Stats.AddValue("Blocks");
                 }
             }
         }

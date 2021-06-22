@@ -12,8 +12,10 @@ namespace Stats.Patches
             {
                 if (___player.data.view.IsMine && !___player.GetComponent<PlayerAPI>().enabled)
                 {
-                    UnityEngine.Debug.LogWarning("shot");
-                    Stats.AddValueOld(Stats.Value.Shoots);
+#if DEBUG
+                    UnityEngine.Debug.LogWarning("Shot");
+#endif
+                    Stats.AddValue("Bullets shot");
                 }
             }
         }
