@@ -249,7 +249,7 @@ namespace Stats
                 scrollDefault.gameObject.SetActive(false);
                 scrollModded.gameObject.SetActive(true);
             });
-            
+
             var CardBase = cards.transform.Find("Group/Grid/CardBaseObject");
             foreach (var cardInstance in CardChoice.instance.cards)
             {
@@ -274,6 +274,41 @@ namespace Stats
                 CardObjects.Add(cardItem);
                 cardObject.SetActive(true);
             }
+
+            void ActivateAll()
+            {
+                foreach (var card in CardObjects)
+                {
+                    card.gameObject.SetActive(true);
+                }
+            }
+            
+            var searchBar = cards.transform.Find("Group/Grid/InputField");
+            searchBar.GetComponent<TMP_InputField>().onValueChanged.AddListener( value =>
+            {
+                foreach (var card in CardObjects)
+                {
+                    if (value == "")
+                    {
+                        ActivateAll();
+                        return;
+                    }
+                    if (!card.cardName.Contains(value))
+                    {
+                        card.gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        card.gameObject.SetActive(true);
+                    }
+                }
+            });
+            searchBar.GetComponent<TMP_InputField>().onDeselect.AddListener(value =>
+            {
+                searchBar.GetComponent<TMP_InputField>().text = "";
+                ActivateAll();
+            });
+            
             
         }
 
