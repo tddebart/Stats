@@ -18,6 +18,34 @@ namespace Stats.Patches
             }
         }
         
+        [HarmonyPatch(typeof(GM_ArmsRace)),HarmonyPatch("GameOver")]
+        private class Patch_GameOver
+        {
+            // ReSharper disable once UnusedMember.Local
+            private static void Postfix(int winningTeamID)
+            {
+                if (Stats.localPlayer.teamID == winningTeamID)
+                {
+#if DEBUG
+                    UnityEngine.Debug.LogWarning("Game won");
+#endif
+                    Stats.AddValue("Games won");
+                } 
+                else if (Stats.localPlayer.teamID != winningTeamID)
+                {
+#if DEBUG
+                    UnityEngine.Debug.LogWarning("Game lost");
+#endif
+                    Stats.AddValue("Games lost");
+                }
+#if DEBUG
+                UnityEngine.Debug.LogWarning("Game over");
+#endif
+
+                Stats.AddValue("Games played");
+            }
+        }
+        
         [HarmonyPatch(typeof(GM_ArmsRace)),HarmonyPatch("RoundOver")]
         private class Patch_RoundOver
         {

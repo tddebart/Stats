@@ -32,7 +32,7 @@ namespace Stats.Patches
                     UnityEngine.Debug.LogWarning("Damage dealt to us: " + damage.magnitude.ToString("N0"));
 #endif
                     
-                    Stats.AddValue("Total damage received", int.Parse(damage.magnitude.ToString("N0")));
+                    Stats.AddValue("Total damage received", int.Parse(damage.magnitude.ToString()));
                 }
             }
         }

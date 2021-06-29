@@ -104,6 +104,26 @@ namespace Stats
                     
                     var gameMenu = CreateMenu("Game", 50, _stats);
                     var gamesPlayed = CreateStat("Games played", "Games", "How many games you have played", gameMenu);
+                    var gamesWon = CreateStat("Games won", "Games", "How many games you have won", gameMenu);
+                    var gamesLost = CreateStat("Games lost", "Games", "How many games you have lost", gameMenu);
+                    var gamesWonPercentage = CreateStat("Games won percentage", "Games", "How many games you have won by percentage", gameMenu, 0,
+                        () =>
+                        {
+                            StatValue RWP = null;
+                            foreach (var stat in StatObjects)
+                            {
+                                if (stat._statName == "Games won percentage")
+                                {
+                                    RWP = stat;
+                                }
+                            }
+
+                            if (gamesWon.GetComponent<StatValue>().amount.Value == 0 ||
+                                gamesPlayed.GetComponent<StatValue>().amount.Value == 0 || RWP == null) return;
+                            RWP.amount.Value = (gamesWon.GetComponent<StatValue>().amount.Value /
+                                                gamesPlayed.GetComponent<StatValue>().amount.Value) * 100;
+                        });
+                    
                     var roundsPlayed = CreateStat("Rounds played", "Games", "How many rounds you have played", gameMenu);
                     var roundsWon = CreateStat("Rounds won", "Games", "How many rounds you have won", gameMenu);
                     var roundsLost = CreateStat("Rounds lost", "Games", "How many rounds you have lost", gameMenu);
@@ -302,7 +322,7 @@ namespace Stats
             });
 
             var CardBase = cards.transform.Find("Group/Grid/CardBaseObject");
-            foreach (var cardInstance in CardChoice.instance.cards)
+            foreach (var cardInstance in (CardInfo[]) Traverse.Create(Unbound.Instance).Field("defaultCards").GetValue())
             {
                 var _card = Instantiate(CardBase, cards.transform.Find("Group/Grid/Scroll View Default/Viewport/Content"));
                 
