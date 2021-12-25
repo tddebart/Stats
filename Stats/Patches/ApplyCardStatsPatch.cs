@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Photon.Pun;
+using UnboundLib.GameModes;
 using UnityEngine;
 
 namespace Stats.Patches
@@ -17,6 +18,7 @@ namespace Stats.Patches
 #if DEBUG
                     UnityEngine.Debug.LogWarning("Got card: " + __instance.GetComponent<CardInfo>().cardName.ToLower());
 #endif
+                    
                     Stats.AddCardPickedValue(__instance.GetComponent<CardInfo>());
                 }
             }

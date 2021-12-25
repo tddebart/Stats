@@ -1,6 +1,7 @@
 ﻿using System;
 using BepInEx.Configuration;
 using TMPro;
+using UnboundLib;
 using UnityEngine;
 
 namespace Stats
@@ -33,7 +34,7 @@ namespace Stats
             
             gameObj.transform.Find("StatBase").GetComponent<TextMeshProUGUI>().text = StatName;
             gameObj.statAmount = gameObj.transform.Find("StatBase_Text").GetComponent<TextMeshProUGUI>();
-            
+
             gameObj.amount = Stats.Instance.customConfig.Bind(Section, StatName, 0f, Description);
 
             obj.SetActive(true);
@@ -48,7 +49,8 @@ namespace Stats
         {
             if (updateAction != null) updateAction();
             statAmount.text = amount.Value.ToString("N" + RoundDecimals, Stats.cultureInfo);
-
+            
+            statAmount.transform.SetXPosition(0);
         }
     }
 }
