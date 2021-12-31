@@ -15,17 +15,19 @@ namespace Stats
             set => PlayerPrefs.SetFloat("bossSloth.stats" + section + _statName, value);
         }
 
+        public string customAmount = "FUCK";
+
         public string _statName;
         
         private TextMeshProUGUI statAmount;
 
-        private Action updateAction; 
+        private Action<StatValue> updateAction; 
         
         private int RoundDecimals;
         
         private string section;
 
-        public StatValue(GameObject obj ,string StatName, string Section, string Description, int _RoundDecimals, out GameObject _obj)
+        public StatValue(GameObject obj ,string StatName, string Section, int _RoundDecimals, out GameObject _obj)
         {
             var gameObj = obj.AddComponent<StatValue>();
             _obj = gameObj.gameObject;
@@ -33,10 +35,12 @@ namespace Stats
             _statName = StatName;
             section = Section;
             RoundDecimals = _RoundDecimals;
+            customAmount = "FUCK";
             
             gameObj.RoundDecimals = _RoundDecimals;
             gameObj._statName = StatName;
             gameObj.section = Section;
+            gameObj.customAmount = "FUCK";
             
             gameObj.name = StatName;
             
@@ -46,15 +50,15 @@ namespace Stats
             obj.SetActive(true);
         }
 
-        public void AddUpdateAction(Action action)
+        public void AddUpdateAction(Action<StatValue> action)
         {
-            this.updateAction = (Action)Delegate.Combine(this.updateAction, action);
+            this.updateAction = (Action<StatValue>)Delegate.Combine(this.updateAction, action);
         }
 
         public void UpdateValue()
         {
-            if (updateAction != null) updateAction();
-            statAmount.text = amount.ToString("N" + RoundDecimals, Stats.cultureInfo);
+            if (updateAction != null) updateAction(this);
+            statAmount.text = customAmount == "FUCK" ? amount.ToString("N" + RoundDecimals, Stats.cultureInfo) : customAmount;
             
             statAmount.transform.SetXPosition(0);
         }

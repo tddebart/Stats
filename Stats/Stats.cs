@@ -31,9 +31,7 @@ namespace Stats
         public static bool HighestActivated = false;
         public static float HighestHealth;
         public static float HighestDamage;
-
-
-        public static bool drawCardUI;
+        
         public static Player playerCard;
 
         public static Stats Instance;
@@ -45,6 +43,10 @@ namespace Stats
 
         internal static readonly List<CardItem> CardObjects = new List<CardItem>();
         internal static readonly List<StatValue> StatObjects = new List<StatValue>();
+
+        public static TimeSince timePlayed;
+        public static float timePlayedInGame;
+        public static float timePlayedInCard;
 
         internal static Player localPlayer;
 
@@ -98,12 +100,11 @@ namespace Stats
 
 
             var gameMenu = CreateMenu("Game", menu);
-            var gamesPlayed = CreateStat("Games played", "Games", "How many games you have played", gameMenu);
-            var gamesWon = CreateStat("Games won", "Games", "How many games you have won", gameMenu);
-            var gamesLost = CreateStat("Games lost", "Games", "How many games you have lost", gameMenu);
-            var gamesWonPercentage = CreateStat("Win percentage", "Games",
-                "How many games you have won by percentage", gameMenu, 0,
-                () =>
+            var gamesPlayed = CreateStat("Games played", "Games", gameMenu);
+            var gamesWon = CreateStat("Games won", "Games", gameMenu);
+            var gamesLost = CreateStat("Games lost", "Games", gameMenu);
+            var gamesWonPercentage = CreateStat("Win percentage", "Games", gameMenu, 0,
+                (e) =>
                 {
                     StatValue RWP = null;
                     foreach (var stat in StatObjects)
@@ -120,13 +121,12 @@ namespace Stats
                                         gamesPlayed.GetComponent<StatValue>().amount) * 100;
                 });
 
-            var roundsPlayed = CreateStat("Rounds played", "Games", "How many rounds you have played",
+            var roundsPlayed = CreateStat("Rounds played", "Games",
                 gameMenu);
-            var roundsWon = CreateStat("Rounds won", "Games", "How many rounds you have won", gameMenu);
-            var roundsLost = CreateStat("Rounds lost", "Games", "How many rounds you have lost", gameMenu);
-            var roundsWonPercentage = CreateStat("Rounds win percentage", "Games",
-                "How many rounds you have won by percentage", gameMenu, 0,
-                () =>
+            var roundsWon = CreateStat("Rounds won", "Games", gameMenu);
+            var roundsLost = CreateStat("Rounds lost", "Games", gameMenu);
+            var roundsWonPercentage = CreateStat("Rounds win percentage", "Games", gameMenu, 0,
+                (e) =>
                 {
                     StatValue RWP = null;
                     foreach (var stat in StatObjects)
@@ -146,12 +146,11 @@ namespace Stats
             
             var GunMenu = CreateMenu("Gun and player", menu);
 
-            var bulletsShot = CreateStat("Bullets shot", "Gun", "How many bullets you have shot", GunMenu);
-            var totalDamage = CreateStat("Total damage", "Gun", "How much damage you have done total", GunMenu);
+            var bulletsShot = CreateStat("Bullets shot", "Gun", GunMenu);
+            var totalDamage = CreateStat("Total damage", "Gun", GunMenu);
             CreateStat("Average damage done per shot", "Gun",
-                "How much damage you have done average per bullet",
                 GunMenu, 2,
-                () =>
+                (e) =>
                 {
                     StatValue AVDPS = null;
                     foreach (var stat in StatObjects)
@@ -167,12 +166,10 @@ namespace Stats
                     AVDPS.amount = totalDamage.GetComponent<StatValue>().amount /
                                          bulletsShot.GetComponent<StatValue>().amount;
                 });
-            var recievedDamage = CreateStat("Total damage received", "Player",
-                "How much damage you have received", GunMenu);
+            var recievedDamage = CreateStat("Total damage received", "Player", GunMenu);
 
-            CreateStat("Blocks", "Block", "How many times you blocked", GunMenu).transform.SetSiblingIndex(3);
-            CreateStat("Average damage done per game", "Games",
-                "How much damage you have done per game average", GunMenu, 2, () =>
+            CreateStat("Blocks", "Block", GunMenu).transform.SetSiblingIndex(3);
+            CreateStat("Average damage done per game", "Games", GunMenu, 2, (e) =>
                 {
                     StatValue AVDPG = null;
                     foreach (var stat in StatObjects)
@@ -188,8 +185,7 @@ namespace Stats
                     AVDPG.amount = totalDamage.GetComponent<StatValue>().amount /
                                          gamesPlayed.GetComponent<StatValue>().amount;
                 });
-            CreateStat("Average damage received per game", "Games",
-                "How much damage you have received per game average", GunMenu, 2, () =>
+            CreateStat("Average damage received per game", "Games", GunMenu, 2, (e) =>
                 {
                     StatValue AVDRPG = null;
                     foreach (var stat in StatObjects)
@@ -208,8 +204,29 @@ namespace Stats
             
             var playerHighestMenu = CreateMenu("Player highest stats", menu);
             
-            var Health = CreateStat("Health", "Highest", "Highest health amount", playerHighestMenu);
-            CreateStat("Damage", "Highest", "Highest damage amount", playerHighestMenu);
+            CreateStat("Health", "Highest", playerHighestMenu);
+            HighestHealth = GetValue("Health").amount;
+            CreateStat("Damage", "Highest", playerHighestMenu);
+            HighestDamage = GetValue("Damage").amount;
+
+            var timeMenu = CreateMenu("Time",menu);
+
+            MenuHandler.CreateText("Time is formatted as days:hours:minutes", timeMenu, out _, 35);
+            CreateStat("Total time played", "Time", timeMenu, 0, (value) =>
+            {
+                value.customAmount = TimeSpan.FromSeconds(value.amount).ToString(@"dd\:hh\:mm");
+            });
+            timePlayed = GetValue("Total time played").amount;
+            CreateStat("Total time in game", "Time", timeMenu, 0, (value) =>
+            {
+                value.customAmount = TimeSpan.FromSeconds(value.amount).ToString(@"dd\:hh\:mm");
+            });
+            timePlayedInGame = GetValue("Total time in game").amount;
+            CreateStat("Total time in card menu", "Time", timeMenu, 0, (value) =>
+            {
+                value.customAmount = TimeSpan.FromSeconds(value.amount).ToString(@"dd\:hh\:mm");
+            });
+            timePlayedInCard = GetValue("Total time in card menu").amount;
         }
 
         public static GameObject CreateMenu(string name, GameObject parent)
@@ -249,7 +266,7 @@ namespace Stats
             }
         }
         
-        public static void SetValue(string valueName, int amount = 1)
+        public static void SetValue(string valueName, float amount = 1)
         {
 #if !DEBUG
             if (GameModeManager.CurrentHandler.Name == "Sandbox") return;
@@ -311,14 +328,13 @@ namespace Stats
             Instance = this;
         }
 
-        // ReSharper disable once UnusedMethodReturnValue.Local
-        public static GameObject CreateStat(string Name, string Section, string Description, GameObject parent,int RoundDecimals = 0 , Action updateAction = null)
+        public static GameObject CreateStat(string Name, string Section, GameObject parent,int RoundDecimals = 0 , Action<StatValue> updateAction = null)
         {
             parent = parent.transform.Find("Group/Grid/Scroll View/Viewport/Content").gameObject;
             var _statBase = Instantiate(StatBase, parent.transform);
             // ReSharper disable once Unity.IncorrectMonoBehaviourInstantiation
             // ReSharper disable once UnusedVariable
-            var statValue = new StatValue(_statBase, Name, Section, Description, RoundDecimals , out var obj);
+            var statValue = new StatValue(_statBase, Name, Section, RoundDecimals , out var obj);
             StatObjects.Add(obj.GetComponent<StatValue>());
             obj.GetComponent<StatValue>().AddUpdateAction(updateAction);
             return(obj);
@@ -379,6 +395,44 @@ namespace Stats
             
         }
 
+        private void FixedUpdate()
+        {
+            if (timePlayed % 30 < 0.05f)
+            {
+                SetValue("Total time played", (int)timePlayed);
+            }
+            if (timePlayedInGame % 30 < 0.05f)
+            {
+                SetValue("Total time in game", (int)timePlayedInGame);
+            }
+            if(timePlayedInCard % 30 < 0.05f)
+            {
+                SetValue("Total time in card menu", (int)timePlayedInCard);
+            }
+
+            if (GameManager.instance.isPlaying) 
+            {
+                if (!CardChoice.instance.IsPicking)
+                {
+                    timePlayedInGame += Time.deltaTime;
+                }
+                else
+                {
+                    timePlayedInCard += Time.deltaTime;
+                }
+            }
+
+            UnityEngine.Debug.Log("Game: "+timePlayedInGame + " | Card: " + timePlayedInCard);
+        }
+
+        private void OnDestroy()
+        {
+            SetValue("Total time played", timePlayed);
+            SetValue("Total time in game", timePlayedInGame);
+            SetValue("Total time in card menu", timePlayedInCard);
+        }
+
+
         private static void ClickCards(GameObject cards)
         {
             UpdateValues(cards);
@@ -392,25 +446,6 @@ namespace Stats
         private static UnityAction ClickBack(ListMenuPage backObject)
         {
             return backObject.Open;
-        }
-
-
-        private void OnGUI()
-        {
-            if (drawCardUI)
-            {
-                var player = playerCard;
-                GUI.Label(new Rect(Screen.width/2, Screen.height/2, 1000, 1000), 
-                    "Health: " + player.data.maxHealth
-                               + "\nMovement speed: " + player.data.stats.movementSpeed
-                               + "\nLife steal: " + player.data.stats.lifeSteal
-                               + "\nDamage: " + player.data.weaponHandler.gun.damage
-                               + "\nAmmo: " + player.data.weaponHandler.gun.ammo
-                               + "\nReload time: " + player.data.weaponHandler.gun.reloadTime
-                               + "\nBurst: " + player.data.weaponHandler.gun.bursts 
-                               + "\nBounces: " + player.data.weaponHandler.gun.reflects
-                );
-            }
         }
     }
 }

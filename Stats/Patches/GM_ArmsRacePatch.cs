@@ -43,6 +43,10 @@ namespace Stats.Patches
 #endif
 
                 Stats.AddValue("Games played");
+                
+                Stats.SetValue("Total time played", (int)Stats.timePlayed);
+                Stats.SetValue("Total time in game", (int)Stats.timePlayedInGame);
+                Stats.SetValue("Total time in card menu", (int)Stats.timePlayedInCard);
             }
         }
         
