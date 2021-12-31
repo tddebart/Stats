@@ -109,8 +109,11 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="CardItem.cs" />
+        <Compile Include="Extensions\PlayerManager.cs" />
         <Compile Include="Patches\BlockPatch.cs" />
         <Compile Include="Patches\ApplyCardStatsPatch.cs" />
+        <Compile Include="Patches\CardChoicePatch.cs" />
+        <Compile Include="Patches\CharacterDataPatch.cs" />
         <Compile Include="Patches\CharacterStatModifierPatch.cs" />
         <Compile Include="Patches\GM_ArmsRacePatch.cs" />
         <Compile Include="Patches\GunPatch.cs" />

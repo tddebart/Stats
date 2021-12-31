@@ -6,9 +6,16 @@ namespace Stats
 {
     public class CardItem : MonoBehaviour
     {
-        // ReSharper disable once FieldCanBeMadeReadOnly.Local
-        public ConfigEntry<int> pickedAmountConfig;
-        public ConfigEntry<int> seenAmountConfig;
+        public int pickedAmountConfig
+        {
+            get => PlayerPrefs.GetInt("bossSloth.stats" + "cards_picked" + cardName, 0);
+            set => PlayerPrefs.SetInt("bossSloth.stats" + "cards_picked" + cardName, value);
+        }
+        public int seenAmountConfig
+        {
+            get => PlayerPrefs.GetInt("bossSloth.stats" + "cards_seen" + cardName, 0);
+            set => PlayerPrefs.SetInt("bossSloth.stats" + "cards_seen" + cardName, value);
+        }
 
         public string cardName;
         private readonly TextMeshProUGUI pickedAmount;
@@ -21,15 +28,12 @@ namespace Stats
             seenAmount = transform.Find("Seen/CardBase_Text").GetComponent<TextMeshProUGUI>();
             
             this.gameObject.name = cardName;
-            
-            pickedAmountConfig = Stats.Instance.customConfig.Bind("Cards", cardName + " picked", 0, "Amount of times you have gotten " + cardName);
-            seenAmountConfig = Stats.Instance.customConfig.Bind("Cards", cardName + " seen", 0, "Amount of times you have seen " + cardName);
         }
 
         public void UpdateValue()
         {
-            pickedAmount.text = pickedAmountConfig.Value.ToString("N0", Stats.cultureInfo);
-            seenAmount.text = seenAmountConfig.Value.ToString("N0", Stats.cultureInfo);
+            pickedAmount.text = pickedAmountConfig.ToString("N0", Stats.cultureInfo);
+            seenAmount.text = seenAmountConfig.ToString("N0", Stats.cultureInfo);
         }
     }
 }

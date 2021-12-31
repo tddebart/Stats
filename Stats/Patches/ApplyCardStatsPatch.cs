@@ -17,9 +17,14 @@ namespace Stats.Patches
                 {
 #if DEBUG
                     UnityEngine.Debug.LogWarning("Got card: " + __instance.GetComponent<CardInfo>().cardName.ToLower());
-#endif
-                    
                     Stats.AddCardPickedValue(__instance.GetComponent<CardInfo>());
+#endif
+#if !DEBUG
+                    if (GameModeManager.CurrentHandler.Name != "Sandbox")
+                    {
+                        Stats.AddCardPickedValue(__instance.GetComponent<CardInfo>());
+                    }
+#endif
                 }
             }
         }
@@ -30,14 +35,14 @@ namespace Stats.Patches
             // ReSharper disable once UnusedMember.Local
             private static void Postfix(GameObject objToSpawn, int ___pickrID)
             {
+#if DEBUG
                 if (PhotonNetwork.OfflineMode)
                 {
-#if DEBUG
                     UnityEngine.Debug.LogWarning("Spawned card: " + objToSpawn.GetComponent<CardInfo>().cardName.ToLower() + " with id: " + ___pickrID);
-#endif
                     Stats.AddCardSeenValue(objToSpawn.GetComponent<CardInfo>());
                     return;
                 }
+#endif
                 
                 if (Stats.localPlayer.data.view.IsMine && !Stats.localPlayer.GetComponent<PlayerAPI>().enabled && Stats.localPlayer.playerID == ___pickrID)
                 {

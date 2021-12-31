@@ -28,12 +28,18 @@ namespace Stats
         private const string ModName = "Stats";
         public const string Version = "0.1.0";
 
+        public static bool HighestActivated = false;
+        public static float HighestHealth;
+        public static float HighestDamage;
+
+
+        public static bool drawCardUI;
+        public static Player playerCard;
+
         public static Stats Instance;
         
         private static GameObject StatBase;
         private static GameObject CardMenuBase;
-
-        public readonly ConfigFile customConfig = new ConfigFile(Path.Combine(Paths.ConfigPath, "Stats.cfg"), true);
 
         internal static readonly CultureInfo cultureInfo = new CultureInfo("nl-NL");
 
@@ -58,6 +64,16 @@ namespace Stats
 
             // Create stats menu
             Unbound.RegisterMenu("Stats", () => { }, CreateMenuUnbound, null);
+            
+            On.MainMenuHandler.Awake += (orig,self) =>
+            {
+                this.ExecuteAfterSeconds(2, () =>
+                {
+                    HighestActivated = true;
+                });
+                
+                orig(self);
+            };
         }
         
         private void CreateMenuUnbound(GameObject menu)
@@ -98,33 +114,33 @@ namespace Stats
                         }
                     }
 
-                    if (gamesWon.GetComponent<StatValue>().amount.Value == 0 ||
-                        gamesPlayed.GetComponent<StatValue>().amount.Value == 0 || RWP == null) return;
-                    RWP.amount.Value = (gamesWon.GetComponent<StatValue>().amount.Value /
-                                        gamesPlayed.GetComponent<StatValue>().amount.Value) * 100;
+                    if (gamesWon.GetComponent<StatValue>().amount == 0 ||
+                        gamesPlayed.GetComponent<StatValue>().amount == 0 || RWP == null) return;
+                    RWP.amount = (gamesWon.GetComponent<StatValue>().amount /
+                                        gamesPlayed.GetComponent<StatValue>().amount) * 100;
                 });
 
             var roundsPlayed = CreateStat("Rounds played", "Games", "How many rounds you have played",
                 gameMenu);
             var roundsWon = CreateStat("Rounds won", "Games", "How many rounds you have won", gameMenu);
             var roundsLost = CreateStat("Rounds lost", "Games", "How many rounds you have lost", gameMenu);
-            var roundsWonPercentage = CreateStat("Rounds won percentage", "Games",
+            var roundsWonPercentage = CreateStat("Rounds win percentage", "Games",
                 "How many rounds you have won by percentage", gameMenu, 0,
                 () =>
                 {
                     StatValue RWP = null;
                     foreach (var stat in StatObjects)
                     {
-                        if (stat._statName == "Rounds won percentage")
+                        if (stat._statName == "Rounds win percentage")
                         {
                             RWP = stat;
                         }
                     }
 
-                    if (roundsWon.GetComponent<StatValue>().amount.Value == 0 ||
-                        roundsPlayed.GetComponent<StatValue>().amount.Value == 0 || RWP == null) return;
-                    RWP.amount.Value = (roundsWon.GetComponent<StatValue>().amount.Value /
-                                        roundsPlayed.GetComponent<StatValue>().amount.Value) * 100;
+                    if (roundsWon.GetComponent<StatValue>().amount == 0 ||
+                        roundsPlayed.GetComponent<StatValue>().amount == 0 || RWP == null) return;
+                    RWP.amount = (roundsWon.GetComponent<StatValue>().amount /
+                                        roundsPlayed.GetComponent<StatValue>().amount) * 100;
                 });
 
             
@@ -146,10 +162,10 @@ namespace Stats
                         }
                     }
 
-                    if (totalDamage.GetComponent<StatValue>().amount.Value == 0 ||
-                        bulletsShot.GetComponent<StatValue>().amount.Value == 0 || AVDPS == null) return;
-                    AVDPS.amount.Value = totalDamage.GetComponent<StatValue>().amount.Value /
-                                         bulletsShot.GetComponent<StatValue>().amount.Value;
+                    if (totalDamage.GetComponent<StatValue>().amount == 0 ||
+                        bulletsShot.GetComponent<StatValue>().amount == 0 || AVDPS == null) return;
+                    AVDPS.amount = totalDamage.GetComponent<StatValue>().amount /
+                                         bulletsShot.GetComponent<StatValue>().amount;
                 });
             var recievedDamage = CreateStat("Total damage received", "Player",
                 "How much damage you have received", GunMenu);
@@ -167,10 +183,10 @@ namespace Stats
                         }
                     }
 
-                    if (totalDamage.GetComponent<StatValue>().amount.Value == 0 ||
-                        gamesPlayed.GetComponent<StatValue>().amount.Value == 0 || AVDPG == null) return;
-                    AVDPG.amount.Value = totalDamage.GetComponent<StatValue>().amount.Value /
-                                         gamesPlayed.GetComponent<StatValue>().amount.Value;
+                    if (totalDamage.GetComponent<StatValue>().amount == 0 ||
+                        gamesPlayed.GetComponent<StatValue>().amount == 0 || AVDPG == null) return;
+                    AVDPG.amount = totalDamage.GetComponent<StatValue>().amount /
+                                         gamesPlayed.GetComponent<StatValue>().amount;
                 });
             CreateStat("Average damage received per game", "Games",
                 "How much damage you have received per game average", GunMenu, 2, () =>
@@ -184,14 +200,19 @@ namespace Stats
                         }
                     }
 
-                    if (recievedDamage.GetComponent<StatValue>().amount.Value == 0 ||
-                        gamesPlayed.GetComponent<StatValue>().amount.Value == 0 || AVDRPG == null) return;
-                    AVDRPG.amount.Value = recievedDamage.GetComponent<StatValue>().amount.Value /
-                                          gamesPlayed.GetComponent<StatValue>().amount.Value;
+                    if (recievedDamage.GetComponent<StatValue>().amount == 0 ||
+                        gamesPlayed.GetComponent<StatValue>().amount == 0 || AVDRPG == null) return;
+                    AVDRPG.amount = recievedDamage.GetComponent<StatValue>().amount /
+                                          gamesPlayed.GetComponent<StatValue>().amount;
                 });
+            
+            var playerHighestMenu = CreateMenu("Player highest stats", menu);
+            
+            var Health = CreateStat("Health", "Highest", "Highest health amount", playerHighestMenu);
+            CreateStat("Damage", "Highest", "Highest damage amount", playerHighestMenu);
         }
 
-        private static GameObject CreateMenu(string name, GameObject parent)
+        public static GameObject CreateMenu(string name, GameObject parent)
         {
             var menu = MenuHandler.CreateMenu(name, () => { }, parent);
             menu.transform.Find("Group/Grid/Scroll View/Viewport/Content/").GetComponent<VerticalLayoutGroup>().spacing = 50;
@@ -211,7 +232,41 @@ namespace Stats
             }
         }
 
-        internal static void AddValue(string valueName, int amount = 1)
+        public static void AddValue(string valueName, int amount = 1)
+        {
+#if !DEBUG
+            if (GameModeManager.CurrentHandler.Name == "Sandbox") return;
+#endif
+            var listSelector = MainMenuHandler.instance.transform.Find("Canvas/ListSelector");
+            var values = listSelector.gameObject.GetComponentsInChildren<StatValue>(true);
+
+            foreach (var value in values)
+            {
+                if (string.Equals(valueName, value._statName, StringComparison.OrdinalIgnoreCase))
+                {
+                    value.amount += amount;
+                }
+            }
+        }
+        
+        public static void SetValue(string valueName, int amount = 1)
+        {
+#if !DEBUG
+            if (GameModeManager.CurrentHandler.Name == "Sandbox") return;
+#endif
+            var listSelector = MainMenuHandler.instance.transform.Find("Canvas/ListSelector");
+            var values = listSelector.gameObject.GetComponentsInChildren<StatValue>(true);
+
+            foreach (var value in values)
+            {
+                if (string.Equals(valueName, value._statName, StringComparison.OrdinalIgnoreCase))
+                {
+                    value.amount = amount;
+                }
+            }
+        }
+        
+        public static StatValue GetValue(string valueName)
         {
             var listSelector = MainMenuHandler.instance.transform.Find("Canvas/ListSelector");
             var values = listSelector.gameObject.GetComponentsInChildren<StatValue>(true);
@@ -220,9 +275,11 @@ namespace Stats
             {
                 if (string.Equals(valueName, value._statName, StringComparison.OrdinalIgnoreCase))
                 {
-                    value.amount.Value += amount;
+                    return value;
                 }
             }
+
+            return null;
         }
 
         internal static void AddCardPickedValue(CardInfo cardInfo)
@@ -231,7 +288,7 @@ namespace Stats
             {
                 if (string.Equals(cardInfo.cardName, card.cardName, StringComparison.OrdinalIgnoreCase))
                 {
-                    card.pickedAmountConfig.Value++;
+                    card.pickedAmountConfig++;
                 }
             }
         }
@@ -242,7 +299,7 @@ namespace Stats
             {
                 if (string.Equals(cardInfo.cardName, card.cardName, StringComparison.OrdinalIgnoreCase))
                 {
-                    card.seenAmountConfig.Value++;
+                    card.seenAmountConfig++;
                 }
             }
         }
@@ -255,7 +312,7 @@ namespace Stats
         }
 
         // ReSharper disable once UnusedMethodReturnValue.Local
-        private static GameObject CreateStat(string Name, string Section, string Description, GameObject parent,int RoundDecimals = 0 , Action updateAction = null)
+        public static GameObject CreateStat(string Name, string Section, string Description, GameObject parent,int RoundDecimals = 0 , Action updateAction = null)
         {
             parent = parent.transform.Find("Group/Grid/Scroll View/Viewport/Content").gameObject;
             var _statBase = Instantiate(StatBase, parent.transform);
@@ -335,6 +392,25 @@ namespace Stats
         private static UnityAction ClickBack(ListMenuPage backObject)
         {
             return backObject.Open;
+        }
+
+
+        private void OnGUI()
+        {
+            if (drawCardUI)
+            {
+                var player = playerCard;
+                GUI.Label(new Rect(Screen.width/2, Screen.height/2, 1000, 1000), 
+                    "Health: " + player.data.maxHealth
+                               + "\nMovement speed: " + player.data.stats.movementSpeed
+                               + "\nLife steal: " + player.data.stats.lifeSteal
+                               + "\nDamage: " + player.data.weaponHandler.gun.damage
+                               + "\nAmmo: " + player.data.weaponHandler.gun.ammo
+                               + "\nReload time: " + player.data.weaponHandler.gun.reloadTime
+                               + "\nBurst: " + player.data.weaponHandler.gun.bursts 
+                               + "\nBounces: " + player.data.weaponHandler.gun.reflects
+                );
+            }
         }
     }
 }
