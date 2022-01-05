@@ -264,7 +264,7 @@ namespace Stats
         public static void AddValue(string valueName, int amount = 1)
         {
 #if !DEBUG
-            if (GameModeManager.CurrentHandler.Name == "Sandbox") return;
+            if (GM_Test.instance && GM_Test.instance.gameObject.activeSelf) return;
 #endif
             var listSelector = MainMenuHandler.instance.transform.Find("Canvas/ListSelector");
             var values = listSelector.gameObject.GetComponentsInChildren<StatValue>(true);
@@ -281,7 +281,7 @@ namespace Stats
         public static void SetValue(string valueName, float amount = 1)
         {
 #if !DEBUG
-            if (GameModeManager.CurrentHandler.Name == "Sandbox") return;
+            if (GM_Test.instance && GM_Test.instance.gameObject.activeSelf) return;
 #endif
             var listSelector = MainMenuHandler.instance.transform.Find("Canvas/ListSelector");
             var values = listSelector.gameObject.GetComponentsInChildren<StatValue>(true);
@@ -426,12 +426,10 @@ namespace Stats
             {
                 if (!CardChoice.instance.IsPicking)
                 {
-                    UnityEngine.Debug.Log("in game");
                     timePlayedInGame += Time.deltaTime;
                 }
                 else
                 {
-                    UnityEngine.Debug.Log("in card");
                     timePlayedInCard += Time.deltaTime;
                 }
             }
