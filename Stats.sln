@@ -6,6 +6,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution files", "Solution 
 ProjectSection(SolutionItems) = preProject
 	Stats\publish.ps1 = Stats\publish.ps1
 	README.md = README.md
+	Stats\ThunderStore\manifest.json = Stats\ThunderStore\manifest.json
 EndProjectSection
 EndProject
 Global

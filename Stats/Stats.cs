@@ -9,6 +9,7 @@ using HarmonyLib;
 using Jotunn.Utils;
 using TMPro;
 using UnboundLib;
+using UnboundLib.GameModes;
 using UnboundLib.Utils;
 using UnboundLib.Utils.UI;
 using UnityEngine;
@@ -83,9 +84,6 @@ namespace Stats
                 
                 orig(self);
             };
-
-
-            extraStatsMenu += CreateMenuUnbound;
         }
         
         private void CreateMenuUnbound(GameObject menu)
@@ -424,14 +422,16 @@ namespace Stats
                 SetValue("Total time in card menu", (int)timePlayedInCard);
             }
 
-            if (GameManager.instance.isPlaying) 
+            if (GameManager.instance.isPlaying && GameModeManager.CurrentHandler.Name != "Sandbox") 
             {
                 if (!CardChoice.instance.IsPicking)
                 {
+                    UnityEngine.Debug.Log("in game");
                     timePlayedInGame += Time.deltaTime;
                 }
                 else
                 {
+                    UnityEngine.Debug.Log("in card");
                     timePlayedInCard += Time.deltaTime;
                 }
             }

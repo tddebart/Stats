@@ -12,7 +12,7 @@ namespace Stats.Patches
             [HarmonyPriority(Priority.First)]
             private static void Prefix(PlayerJump __instance, CharacterData ___data)
             {
-                if (___data.sinceJump > 0.1f && ___data.currentJumps > 0)
+                if (___data.view.IsMine && !__instance.GetComponent<PlayerAPI>().enabled && ___data.sinceJump > 0.1f && ___data.currentJumps > 0)
                 {
 #if DEBUG  
                     UnityEngine.Debug.LogWarning("Jump");

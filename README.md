@@ -27,6 +27,7 @@ void MyUpdateMethod() {
     Stats.SetValue("My custom stat", 10);
 }
 ```
+note: stats only update when you're not in sandbox, build this project in DEBUG mode to allow update in sandbox for testing.
 
 ## Patch notes
 - 1.0.0 (Initial release)

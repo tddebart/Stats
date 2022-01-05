@@ -1,0 +1,11 @@
+﻿{
+  "name": "Statistics",
+  "version_number": "#VERSION#",
+  "website_url": "https://github.com/tddebart/Stats",
+  "description": "Adds stats to the game like amount blocked",
+  "dependencies": [
+    "willis81808-UnboundLib-2.9.0",
+    "willis81808-MMHook-1.0.0",
+    "BepInEx-BepInExPack_ROUNDS-5.4.1100"
+  ]
+}

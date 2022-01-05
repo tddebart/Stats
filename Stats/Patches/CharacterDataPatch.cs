@@ -10,7 +10,7 @@ namespace Stats.Patches
             // ReSharper disable once UnusedMember.Local
             private static void Postfix(CharacterData __instance)
             {
-                if (Stats.HighestActivated)
+                if (Stats.HighestActivated && __instance.view.IsMine && !__instance.GetComponent<PlayerAPI>().enabled)
                 {
                     if (__instance.maxHealth > Stats.HighestHealth)
                     {
