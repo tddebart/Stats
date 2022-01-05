@@ -116,6 +116,7 @@
         <Compile Include="Patches\CharacterStatModifierPatch.cs" />
         <Compile Include="Patches\GM_ArmsRacePatch.cs" />
         <Compile Include="Patches\GunPatch.cs" />
+        <Compile Include="Patches\MovementPatch.cs" />
         <Compile Include="Patches\PlayerPatch.cs" />
         <Compile Include="Stats.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
